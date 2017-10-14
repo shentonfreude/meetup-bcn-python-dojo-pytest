@@ -21,6 +21,11 @@ def validate(items, test_cases):
 
 
 def test_normal():
+    """Decrement sell_in and adjust quality.
+
+    If sell_in <= 0: q = q - 2
+    If sell_in > 0: q = q - 1
+    """
     test_cases = [              # (before, after)
         (Item("+5 Dexterity Vest", 2, 4),
          Item("+5 Dexterity Vest", 1, 3)),
@@ -30,12 +35,38 @@ def test_normal():
          Item('+5 Dexterity Vest', 0, 0)),
         (Item('+5 Dexterity Vest', 0, 1),
          Item('+5 Dexterity Vest', -1, 0)),
+        (Item('+5 Dexterity Vest', -1, 42),  # test si<0 gets q decremented by 2
+         Item('+5 Dexterity Vest', -2, 40)),
         (Item('+5 Dexterity Vest', 1, -1),
          Item('+5 Dexterity Vest', 0, -1)),  # VIOLATES SPEC, Q should be >= 0
         (Item('+5 Dexterity Vest', 1, 500),
          Item('+5 Dexterity Vest', 0, 499)),  # VIOLATES SPEC, Q should be <= 50
         (Item("ñoqui", 1, 42),     # test unicode, not part of spec, not TDD
          Item("ñoqui", 0, 41)),
+    ]
+    items = get_gilded_items(test_cases)
+    validate(items, test_cases)
+
+
+def test_sulfuras():
+    """sell_in and quality never change."""
+    test_cases = [              # (before, after)
+        (Item("Sulfuras, Hand of Ragnaros", 2, 4),
+         Item("Sulfuras, Hand of Ragnaros", 2, 4)),
+        (Item("Sulfuras, Hand of Ragnaros", -1, -1),
+         Item("Sulfuras, Hand of Ragnaros", -1, -1)),
+    ]
+    items = get_gilded_items(test_cases)
+    validate(items, test_cases)
+
+
+def test_aged_brie():
+    """sell_in decrements, quality increments."""
+    test_cases = [
+        (Item('Aged Brie', 1, 1),
+         Item('Aged Brie', 0, 2),),
+        (Item('Aged Brie', 0, 1),
+         Item('Aged Brie', -1, 3),),
     ]
     items = get_gilded_items(test_cases)
     validate(items, test_cases)
