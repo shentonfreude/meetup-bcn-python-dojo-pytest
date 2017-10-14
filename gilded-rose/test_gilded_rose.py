@@ -6,10 +6,8 @@ from item import Item
 
 def get_gilded_items(test_cases):
     items = [test_case[0] for test_case in test_cases]
-    print('1: {}'.format(items))
     gilded_rose = GildedRose(items)
     gilded_rose.update_quality()
-    print('2: {}'.format(items))
     return items
 
 
@@ -61,12 +59,44 @@ def test_sulfuras():
 
 
 def test_aged_brie():
-    """sell_in decrements, quality increments."""
+    """sell_in decrements, quality increments.
+
+    if sell_in <= 0, q decrements by 2;
+    else q decrements by 1
+    """
     test_cases = [
         (Item('Aged Brie', 1, 1),
          Item('Aged Brie', 0, 2),),
         (Item('Aged Brie', 0, 1),
          Item('Aged Brie', -1, 3),),
+    ]
+    items = get_gilded_items(test_cases)
+    validate(items, test_cases)
+
+
+def test_backstage_pass():
+    """sell_in decrements, quality increments until after event.
+
+    if sellin <= 10, q =+ 2;
+    elif sellin <= 5, q =+ 3;
+    elif sellin < 0: q = 0;
+    else sellin =+ 1
+    """
+    test_cases = [
+        (Item('Backstage passes to a TAFKAL80ETC concert', 20, 10),  # normal
+         Item('Backstage passes to a TAFKAL80ETC concert', 19, 11),),
+        (Item('Backstage passes to a TAFKAL80ETC concert', 10, 12),  # si <= 10
+         Item('Backstage passes to a TAFKAL80ETC concert', 9, 14),),
+        (Item('Backstage passes to a TAFKAL80ETC concert', 5, 12),  # si <= 5
+         Item('Backstage passes to a TAFKAL80ETC concert', 4, 15),),
+        (Item('Backstage passes to a TAFKAL80ETC concert', -1, 42),  # si < 0
+         Item('Backstage passes to a TAFKAL80ETC concert', -2, 0),),
+        # Test last day, sell_in==1 -> sell_in==0
+        (Item('Backstage passes to a TAFKAL80ETC concert', 1, 12),  # si <= 5
+         Item('Backstage passes to a TAFKAL80ETC concert', 0, 15),),
+        # After last day, becomes worthless
+        (Item('Backstage passes to a TAFKAL80ETC concert', 0, 12),  # next si < 0
+         Item('Backstage passes to a TAFKAL80ETC concert', -1, 0),),
     ]
     items = get_gilded_items(test_cases)
     validate(items, test_cases)
